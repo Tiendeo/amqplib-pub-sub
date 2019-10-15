@@ -2,9 +2,9 @@ import test from 'tape';
 import proxyquire from 'proxyquire';
 import { stub } from 'sinon';
 
-const channel = { 
-  assertExchange: stub(), 
-  publish: stub() 
+const channel = {
+  assertExchange: stub(),
+  publish: stub(),
 };
 
 const connection = {
@@ -18,44 +18,48 @@ const amqplib = {
 
 const logger = {
   debug: stub(),
-}
+};
 
 const options = {
-  RABBIT_URI: 'foo',
+  AMQP_URI: 'foo',
   VERBOSE: 'debug',
 };
 
-const RabbitMQService = proxyquire('../RabbitMQService', {
+const AMQPService = proxyquire('../AMQPService', {
   amqplib: amqplib,
   './Logger': logger,
   '@noCallThru': true,
 }).default;
 
 /**
- * Test RabbitMQService
+ * Test AMQPService
 */
 
-test('RabbitMQService', t => {
+test('AMQPService', t => {
   t.test('Constructor - Should throw missing URI error', ({ deepEqual, end }) => {
     try {
-      new RabbitMQService({});
+      new AMQPService({});
     } catch (error) {
       const errorMessage = error.message;
-      deepEqual(errorMessage, 'RabbitMQService - Fail Missing Rabbit URI');
+
+      deepEqual(errorMessage, 'AMQPLIB-pub-sub - Fail Missing Rabbit URI');
     }
     end();
   });
 
   t.test('Connect - Should call rabbit with connection string', async ({ ok, end }) => {
-      const rabbitClient = new RabbitMQService(options);
-      await rabbitClient.connect();
-      ok(amqplib.connect.calledWith(options.RABBIT_URI));
+    const rabbitClient = new AMQPService(options);
+
+    await rabbitClient.connect();
+      
+    ok(amqplib.connect.calledWith(options.AMQP_URI));
     end();
   });
 
   t.test('publishExchange - Should return if empty message', async ({ ok, end }) => {
     const emptyMessage = '';
-    const rabbitClient = new RabbitMQService(options);
+    const rabbitClient = new AMQPService(options);
+
     await rabbitClient.connect();
     await rabbitClient.publishExchange('exchange', 'routingKey', emptyMessage);
 
@@ -66,8 +70,8 @@ test('RabbitMQService', t => {
   t.test('publishExchange - Should publish message', async ({ ok, end }) => {
     const message = 'foo';
     const exchange = 'exchange';
-    const routingKey = 'routingKey'
-    const rabbitClient = new RabbitMQService(options);
+    const routingKey = 'routingKey';
+    const rabbitClient = new AMQPService(options);
 
     await rabbitClient.connect();
     await rabbitClient.publishExchange(exchange, routingKey, message);

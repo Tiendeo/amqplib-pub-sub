@@ -1,42 +1,42 @@
 import amqplib from 'amqplib';
-import { RabbitError } from './Error';
-import Logger from './Logger';
+import { AMQPError } from './Error';
+import logger from './Logger';
 
-class RabbitMQService {
+class AMQPService {
   constructor(options) {
-    if (!options || !options.RABBIT_URI) {
-      throw new RabbitError('RabbitMQService - Fail Missing Rabbit URI');
+    if (!options || !options.AMQP_URI) {
+      throw new AMQPError('AMQPLIB-pub-sub - Fail Missing Rabbit URI');
     }
-    const { RABBIT_URI, VERBOSE } = options;
-    this.consumers = [];
-    this.uri = RABBIT_URI;
-    const logger = new Logger(options)
-    this.logger = logger;
 
-    this.logger.debug('RabbitMQService - constructor');
+    logger.level = options.VERBOSE || 'info';
+    logger.info('AMQPLIB-pub-sub constructor');
+
+    this.consumers = [];
+    this.uri = options.AMQP_URI;
   }
 
   async connect() {
     try {
       this.conn = await amqplib.connect(this.uri);
-      this.logger.debug('RabbitMQService - Connect Success!');
+      
+      logger.debug('AMQPLIB-pub-sub: Connect Success!');
 
       this.upPublisher();
       this.upConsumers();
 
-      this.conn.on('error', err => {
+      this.conn.on('error', () => {
         setTimeout(this.connect.bind(this), 10000);
-        throw new RabbitError('RabbitMQService - Fail connect');
+        throw new AMQPError('AMQPLIB-pub-sub: Fail connect');
       });
       
       this.conn.on('close', () => {
         setTimeout(this.connect.bind(this), 10000);
-        this.logger.error('connection to RabbitQM closed!');
+        logger.error('AMQPLIB-pub-sub: connection closed!');
       });
     } catch (error) {
-        setTimeout(this.connect.bind(this), 30000);
-        this.logger.error('RabbitMQService - Fail connect', error);
-        throw new RabbitError('RabbitMQService - Fail connect');
+      setTimeout(this.connect.bind(this), 30000);
+      logger.error('AMQPLIB-pub-sub: Fail connect', error);
+      throw new AMQPError('AMQPLIB-pub-sub: Fail connect');
     }
   }
 
@@ -54,12 +54,14 @@ class RabbitMQService {
     const payload = this._stringify(msg);
 
     try {
-      this.logger.debug('Publish on Exchange!');
+      
       await this.publishChannel.assertExchange(exchange, 'topic');
       await this.publishChannel.publish(exchange, routingKey, Buffer.from(payload), options);
+      
+      logger.debug(`AMQPLIB-pub-sub: Published on exchange ${exchange}`);
 
     } catch (error) {
-      throw new RabbitError('RabbitMQService - Fail publish exchange');
+      throw new AMQPError('AMQPLIB-pub-sub: Fail publish exchange');
     }
   }
 
@@ -67,12 +69,12 @@ class RabbitMQService {
     try {
       this.publishChannel = await this.createChannel();
     } catch (error) {
-      throw new RabbitError('RabbitMQService - Fail upPublisher');
+      throw new AMQPError('AMQPLIB-pub-sub: Fail upping publishers');
     }
   }
 
   upConsumers() {
-    this.logger.debug('Upping Consumers');
+    logger.debug('AMQPLIB-pub-sub: Upping Consumers');
 
     this.consumers.forEach(async consumer => {
       const ch = await this.createChannel();
@@ -89,7 +91,7 @@ class RabbitMQService {
         ch.prefetch(1);
         ch.consume(queue, callback);
       } catch (error) {
-          throw new RabbitError('RabbitMQService - Fail upConsumers');
+        throw new AMQPError('AMQPLIB-pub-sub: Fail upConsumers');
       }
     });
   }
@@ -107,4 +109,4 @@ class RabbitMQService {
   }
 }
 
-export default RabbitMQService;
+export default AMQPService;

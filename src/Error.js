@@ -1,8 +1,8 @@
-class RabbitError extends Error {
+class AMQPError extends Error {
   constructor(message, options = {}) {
     super(message);
     this.options = options;
   }
 }
 
-export { RabbitError };
+export { AMQPError };

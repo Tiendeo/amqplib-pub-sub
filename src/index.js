@@ -1,3 +1,3 @@
-import RabbitMQService from './RabbitMQService';
+import AMQPService from './AMQPService';
 
-export default RabbitMQService;
+export default AMQPService;

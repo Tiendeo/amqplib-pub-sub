@@ -1,23 +1,11 @@
 import winston from 'winston';
 
-winston.emitErrs = true;
+const logger = winston.createLogger({
+  transports: [new winston.transports.Console()],
+  format: winston.format.combine(
+    winston.format.colorize({ all: true }),
+    winston.format.simple()
+  ),
+});
 
-class Logger extends winston.Logger {
-  constructor(options) {
-    const transports = [
-      new winston.transports.Console({
-        level: options.VERBOSE || 'debug',
-        handleExceptions: true,
-        json: false,
-        colorize: true,
-      }),
-    ];
-
-    super({
-      transports,
-      exitOnError: false,
-    });
-  }
-}
-
-export default Logger;
+export default logger;
