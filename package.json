@@ -8,17 +8,16 @@
     "build": "babel src --ignore **/__test__/**.js -d build",
     "coverage": "cross-env NODE_ENV=test nyc npm test",
     "eslint": "./node_modules/.bin/eslint ./src",
-    "stylelint": "./node_modules/.bin/stylelint \"**/*.{js,jsx}\"",
-    "format": "npm run prettier -- --write --config ./node_modules/lintconfig/.prettierrc.js",
     "prettier": "./node_modules/.bin/prettier \"**/*.{js,jsx,css,json}\""
   },
   "author": "Daniel Sola",
   "license": "ISC",
   "dependencies": {
     "amqplib": "0.5.5",
-    "winston": "2.3.1"
+    "winston": "3.2.1"
   },
   "devDependencies": {
+    "acorn": "7.1.0",
     "@babel/cli": "7.5.5",
     "@babel/core": "7.5.5",
     "@babel/node": "7.5.5",
